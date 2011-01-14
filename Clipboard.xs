@@ -3,7 +3,7 @@
 #
 # Win32::Clipboard - Interaction with the Windows clipboard
 #
-# Version: 0.55
+# Version: 0.56
 # Created: 19 Nov 96
 # Author: Aldo Calpini <dada@perl.it>
 #
@@ -19,6 +19,7 @@
 #define  WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string.h>
+#include <wchar.h>
 #include <winuser.h>
 #include <shellapi.h>
 

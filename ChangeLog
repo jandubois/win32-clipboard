@@ -1,3 +1,8 @@
+2011-01-13
+	- version 0.56
+	- include file <wchar.h> needed for MinGW/Cygwin compilation
+	  (Rafael Kitover). [rt#64715]
+	
 2008-08-19
 	- version 0.55
 	- documentation for GetAs(CF_UNICODETEXT) suggested by Neilay Dedhia.
