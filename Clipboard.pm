@@ -3,7 +3,7 @@ package Win32::Clipboard;
 #
 # Win32::Clipboard - Interaction with the Windows clipboard
 #
-# Version: 0.56
+# Version: 0.57
 # Author: Aldo Calpini <dada@perl.it>
 #
 # Modified by: Hideyo Imazu <himazu@gmail.com>
@@ -53,7 +53,7 @@ sub AUTOLOAD {
 }
 
 
-$VERSION = "0.56";
+$VERSION = "0.57";
 
 sub new {
     my($class, $value) = @_;
