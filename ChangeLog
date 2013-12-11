@@ -1,3 +1,8 @@
+2013-12-11
+	- version 0.58
+	- remove EUMM-Update changes to Makefile.PL, which removed
+	  the updated metadata in 0.57 from META.yml
+
 2013-11-28
 	- version 0.57
 	- Fix required perl version 5.6 -> 5.006.
