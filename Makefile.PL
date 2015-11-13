@@ -11,6 +11,7 @@ my %param = (
     NAME         => 'Win32::Clipboard',
     VERSION_FROM => 'Clipboard.pm',
     XS           => { 'Clipboard.xs' => 'Clipboard.cpp' },
+    TEST_REQUIRES => { 'Test::More' => 1 }
 );
 $param{NO_META} = 1 if eval "$ExtUtils::MakeMaker::VERSION" >= 6.10_03;
 WriteMakefile(%param);
