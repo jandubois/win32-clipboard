@@ -3,7 +3,7 @@
 #
 # Win32::Clipboard - Interaction with the Windows clipboard
 #
-# Version: 0.58
+# Version: 0.59
 # Created: 19 Nov 96
 # Author: Aldo Calpini <dada@perl.it>
 #
@@ -469,6 +469,34 @@ PPCODE:
 	}
 
 void
+UGet()
+PPCODE:
+    HANDLE myhandle;
+    if(OpenClipboard(NULL)) {
+	EXTEND(SP,1);
+	if(myhandle = GetClipboardData(CF_UNICODETEXT)) {
+	    /* here we decode UTF16-LE into UTF8, using perl API */
+	    wchar_t *wcmyh = (wchar_t*)myhandle;
+            int i, len = wcslen(wcmyh);
+            SV *sv = newSV(len * UTF8_MAXBYTES +1);
+	    SvPOK_on(sv);
+            U8 *e = (U8*) SvPVX(sv), *e0 = e;
+	    for (i=0; i<len; i++) {
+		e = uvuni_to_utf8(e, wcmyh[i]);
+	    }
+	    *e = 0;
+	    SvCUR_set(sv, e-e0);
+	    SvUTF8_on(sv);
+	    ST(0) = sv_2mortal(sv);
+	} else
+	    XST_mNO(0);
+	CloseClipboard();
+	XSRETURN(1);
+    } else {
+	XSRETURN_NO;
+    }
+
+void
 GetFiles(...)
 PPCODE:
     HANDLE myhandle;
@@ -524,6 +552,47 @@ PPCODE:
 	    CloseClipboard();
 	    XSRETURN_NO;
 	}
+    } else {
+	XSRETURN_NO;
+    }
+
+void
+SetBitmap(dib)
+    SV *dib
+PPCODE:
+    HANDLE myhandle;
+    HGLOBAL hGlobal;
+    STRLEN leng;
+    U8 *str = (U8*) SvPV(dib, leng);
+
+    if ( hGlobal = GlobalAlloc(GMEM_DDESHARE, (leng+2)*sizeof(char)*2) ) {
+        wchar_t *szString = (wchar_t *) GlobalLock(hGlobal);
+	U8 * const send = str + leng;
+	/* we have raw data */
+	while (str < send) {
+	    *szString++ = (wchar_t) *str++;
+	}
+	*szString = '\0';
+        GlobalUnlock(hGlobal);
+
+        if ( OpenClipboard(NULL) ) {
+            EmptyClipboard();
+            myhandle = SetClipboardData(CF_DIB, (HANDLE) hGlobal);
+            CloseClipboard();
+
+            if ( myhandle ) {
+                fprintf(stderr,"XS(SetBitmap) good\n");
+                XSRETURN_YES;
+            } else {
+                fprintf(stderr,"XS(SetBitmap) failed (%d)\n",GetLastError());
+                XSRETURN_NO;
+            }
+        } else {
+            GlobalFree(hGlobal);
+            XSRETURN_NO;
+        }
+
+
     } else {
 	XSRETURN_NO;
     }
@@ -652,6 +721,57 @@ PPCODE:
     }
 
 void
+USet(text)
+    SV *text
+PPCODE:
+    HANDLE myhandle;
+    HGLOBAL hGlobal;
+    STRLEN leng;
+    U8 *str = (U8*) SvPV(text, leng);
+
+    if ( hGlobal = GlobalAlloc(GMEM_DDESHARE, (leng+2)*sizeof(char)*2) ) {
+        /* here we encode UTF16-LE from UTF8, using perl API */
+        wchar_t *szString = (wchar_t *) GlobalLock(hGlobal);
+
+	if(SvUTF8(text)) {
+	    /* indeed, we have utf8 data */
+	    U8 * const send = str + leng;
+	    STRLEN ulen;
+	    while (str < send) {
+		*szString++ = (wchar_t)utf8_to_uvchr(str, &ulen);
+		str += ulen;
+	    }
+	} else {
+	    /* we have raw data, no encoding to UTF8 */
+	    U8 * const send = str + leng;
+	    while (str < send) {
+		*szString++ = (wchar_t) *str++;
+	    }
+	}
+	*szString = '\0';
+
+        GlobalUnlock(hGlobal);
+
+        if ( OpenClipboard(NULL) ) {
+            EmptyClipboard();
+            myhandle = SetClipboardData(CF_UNICODETEXT, (HANDLE) hGlobal);
+            CloseClipboard();
+
+            if ( myhandle ) {
+                XSRETURN_YES;
+            } else {
+                XSRETURN_NO;
+            }
+        } else {
+            GlobalFree(hGlobal);
+            XSRETURN_NO;
+        }
+
+    } else {
+        XSRETURN_NO;
+    }
+
+void
 Empty(...)
 PPCODE:
     if(OpenClipboard(NULL)) {
@@ -697,6 +817,13 @@ long
 IsText(...)
 CODE:
 	RETVAL = (long) IsClipboardFormatAvailable(CF_TEXT);
+OUTPUT:
+	RETVAL
+
+long
+IsUText(...)
+CODE:
+	RETVAL = (long) IsClipboardFormatAvailable(CF_UNICODETEXT);
 OUTPUT:
 	RETVAL
 

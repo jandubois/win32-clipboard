@@ -1,3 +1,7 @@
+2018-10-20
+	- version 0.59, Hacktoberfest version
+	- deal with unicode text: UGet(), USet($s), IsUText()
+
 2013-12-11
 	- version 0.58
 	- remove EUMM-Update changes to Makefile.PL, which removed

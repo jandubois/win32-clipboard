@@ -3,7 +3,7 @@ package Win32::Clipboard;
 #
 # Win32::Clipboard - Interaction with the Windows clipboard
 #
-# Version: 0.58
+# Version: 0.59
 # Author: Aldo Calpini <dada@perl.it>
 #
 # Modified by: Hideyo Imazu <himazu@gmail.com>
@@ -53,7 +53,7 @@ sub AUTOLOAD {
 }
 
 
-$VERSION = "0.58";
+$VERSION = "0.59";
 
 sub new {
     my($class, $value) = @_;
@@ -175,7 +175,9 @@ Example:
 
 All the functions can be used either with their full name
 (eg. B<Win32::Clipboard::Get>) or as methods of a C<Win32::Clipboard>
-object.  For the syntax, refer to L</SYNOPSIS> above. Note also that
+object. Except for these two: C<Win32::Clipboard::UGet()> and 
+C<Win32::Clipboard::USet($s)>.
+For the syntax, refer to L</SYNOPSIS> above. Note also that
 you can create a clipboard object and set its content at the same time
 with:
 
@@ -223,7 +225,7 @@ instead. Get() is in fact implemented as:
     elsif( IsFiles()  ) { return GetFiles();  }
     else                { return GetText();   }
 
-See also IsBitmap(), IsFiles(), IsText(), EnumFormats() and
+See also IsBitmap(), IsFiles(), IsText(), IsUText(), EnumFormats() and
 IsFormatAvailable() to check the clipboard format before getting data.
 
 =item GetAs(FORMAT)
@@ -240,9 +242,16 @@ perl unicode string can be generated as follows:
     $text = $clip->GetAs(CF_UNICODETEXT);
     $text = Encode::decode("UTF16-LE", $text);
 
+Alternatively, you can use C<UGet()> function, which does required conversion
+internally, and also C<USet(...)> function for the reverse operation.
+
 =item GetBitmap()
 
 Returns the clipboard content as an image, or C<undef> on errors.
+
+=item SetBitmap($dib)
+
+Sets the clipboard content as an image, returns true or C<undef> on errors.
 
 =item GetFiles()
 
@@ -258,6 +267,21 @@ on errors; note that you cannot get the name of the standard formats
 =item GetText()
 
 Returns the clipboard content as a string, or C<undef> on errors.
+
+=item UGet()
+
+Returns the clipboard content as unicode string, or C<undef> on errors.
+Resulting string have UTF8 bit on.
+Call it as C<Win32::Clipboard::UGet()>, the OO interface C<<$CLIP->...>>
+not supported.
+
+=item USet(string)
+
+Sets the clipboard content as unicode string, or C<undef> on errors.
+Internally, this function will convert string to wide-char windows 
+encoding.
+Call it as C<Win32::Clipboard::USet($s)>, the OO interface C<<$CLIP->...>>
+not supported.
 
 =item IsBitmap()
 
@@ -279,6 +303,11 @@ data does not match, a nonzero value if it matches.
 
 Returns a boolean value indicating if the clipboard contains text.
 See also GetText().
+
+=item IsUText()
+
+Returns a boolean value indicating if the clipboard contains Unicode text.
+See also USet(), UGet().
 
 =item Set(VALUE)
 
